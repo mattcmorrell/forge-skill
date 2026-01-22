@@ -18,6 +18,7 @@ A Claude Code skill that creates new pages or refines existing components from F
 
 - 🎭 **Dual mode** - Create new components or refine existing ones
 - 📸 **Hybrid approach** - Screenshot for layout + Figma MCP for precision
+- 📁 **File-based workflow** - Saves specs to `.forge/` directory, keeps context lean for precision
 - ⚡ **Parallel building** - Build multiple components simultaneously (optional)
 - 🎯 **Smart grouping** - Select 4-6 main components in Figma, not 500 individual elements
 - 🔧 **Surgical refinements** - Preserves logic, only updates styling in refine mode
@@ -123,6 +124,24 @@ A Claude Code skill that creates new pages or refines existing components from F
 - Component hierarchy and names
 
 **Together:** Visual context + precise specs = pixel-perfect implementation
+
+### File-Based Workflow
+
+Forge saves data to a `.forge/` directory to keep context lean and ensure precision:
+
+- **`.forge/figma-specs.json`** - Exact component specs from Figma MCP
+- **`.forge/screenshot.png`** - Original design screenshot
+- **`.forge/plan.md`** - Comprehensive build plan from Opus
+- **`.forge/implementation.png`** - Current implementation screenshot (for comparison)
+
+**Why this matters:**
+- Each agent reads **only** its component's specs (not all 6 components)
+- Reduces token bloat in context by ~70%
+- Small details like spacing (24px vs 16px) don't get lost in noise
+- Fresh data on every read (no stale context)
+
+**Cleanup:**
+Add `.forge/` to your `.gitignore`. The directory is recreated on each forge run and can be safely deleted after completion.
 
 ### Model Tiering
 

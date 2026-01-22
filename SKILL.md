@@ -92,10 +92,13 @@ Please attach a full-page screenshot showing the complete layout and composition
    ```
    This returns ALL selected components with their specs (dimensions, colors, typography, spacing).
 
-3. **Confirm to user:**
-   "✓ Got specs for [N] components. You can now work on other things in Figma."
+3. **Save specs to file:**
+   - Create `.forge/` directory if needed
+   - Write specs to `.forge/figma-specs.json`
+   - This keeps specs out of context, reduces token bloat
 
-4. **Cache the Figma data** for use in later steps
+4. **Confirm to user:**
+   "✓ Got specs for [N] components. You can now work on other things in Figma."
 
 ### Phase 2: Get Screenshot (Happens Second)
 
@@ -107,6 +110,10 @@ Please attach a full-page screenshot showing the complete layout and composition
 ```
 
 **STOP and wait for screenshot upload. Do NOT do anything else until screenshot is received.**
+
+**After screenshot is uploaded:**
+- Save screenshot to `.forge/screenshot.png`
+- This allows verification agents to reference it directly without context bloat
 
 ### Phase 3: Post-Screenshot Setup
 
@@ -123,12 +130,12 @@ Please attach a full-page screenshot showing the complete layout and composition
 
 At this point you have:
 - **Mode:** Create or Refine
-- **Figma specs** (captured and cached)
-- **Screenshot** (for composition/layout understanding)
+- **`.forge/figma-specs.json`** - Exact component specs
+- **`.forge/screenshot.png`** - Original design screenshot
 - **Dev server** running
 - **Existing components** (if refinement mode)
 
-User's Figma selection can change - you already have the data!
+All data is saved to files - lean context, precise specs. User's Figma selection can change - you already have the data!
 
 ---
 
@@ -136,20 +143,27 @@ User's Figma selection can change - you already have the data!
 
 Spawn a **Task agent with model: opus** to analyze and create implementation plan.
 
-**Pass the mode (create/refine) and existing component info to the agent.**
+**Provide to the agent:**
+- Mode (create/refine) and existing component info
+- Path to screenshot: `.forge/screenshot.png`
+- Path to Figma specs: `.forge/figma-specs.json`
+
+**Agent reads from files** - keeps context lean, ensures fresh data.
 
 ### Analysis Phase
 
 Analyze both inputs together:
 
 1. **Screenshot Analysis** (Composition/Layout):
+   - Read `.forge/screenshot.png`
    - Identify the page structure (grid, flex, columns)
    - Note spatial relationships (how components are positioned relative to each other)
    - Understand layout flow (header → content → footer, sidebar + main, etc.)
    - Identify breakpoints and responsive behavior hints
 
 2. **Figma Specs Analysis** (Component Details):
-   - Parse the Figma MCP response for each selected component
+   - Read `.forge/figma-specs.json`
+   - Parse specs for each selected component
    - Extract precise dimensions, colors (hex values), typography (font, size, weight, line-height)
    - Note spacing/padding values
    - Identify interactive states if present
@@ -161,7 +175,7 @@ Analyze both inputs together:
 
 ### Planning Phase
 
-Create a comprehensive build plan:
+Create a comprehensive build plan and save to `.forge/plan.md`:
 
 **Page Structure:**
 ```typescript
@@ -226,22 +240,32 @@ Task 3 (Sonnet): Build/Refine MainContent component
 Task 4 (Sonnet): Build/Refine Footer component
 ```
 
+**Each agent receives:**
+- Component name (e.g., "Header")
+- Instruction to read `.forge/plan.md` for their specific component section
+- Instruction to read `.forge/figma-specs.json` for their component's exact specs
+
+**Agents do NOT receive full context** - they read only what they need from files. This keeps context lean and ensures precise specs.
+
 ### CREATE Mode (New Components)
 
 Each agent:
+- Reads `.forge/plan.md` for its component section
+- Reads `.forge/figma-specs.json` for exact specs (dimensions, colors, spacing, typography)
 - Creates its component file
-- Implements based on Figma specs from the plan
+- Implements based on precise Figma specs
 - Uses existing design tokens from `/src/index.css`
 - Exports properly
 
 ### REFINE Mode (Existing Components)
 
 Each agent:
-- **Reads the existing component file first**
+- Reads `.forge/plan.md` for its component section and what needs to change
+- Reads `.forge/figma-specs.json` for exact target specs
+- **Reads the existing component file**
 - **Preserves all logic:** event handlers, state, effects, business logic, data fetching
 - **Preserves props interface** (unless structure changed in Figma)
-- **Only updates styling:**
-  - Inline styles or styled-components
+- **Only updates styling to match Figma specs:**
   - Typography (font-family, font-size, font-weight, line-height, color)
   - Spacing (padding, margin, gap)
   - Colors (background, border)
@@ -287,28 +311,35 @@ Fix any issues before proceeding.
 
 ### 5a. COMPARE (Haiku)
 
-Spawn a **Task agent with model: haiku** with Playwright access:
+Spawn a **Task agent with model: haiku** with Playwright access.
+
+**Provide to agent:**
+- Path to original screenshot: `.forge/screenshot.png`
+- Path to Figma specs: `.forge/figma-specs.json`
 
 1. **Take implementation screenshot:**
    - Navigate to the page via Playwright
    - Take full-page screenshot
+   - Save to `.forge/implementation.png`
 
 2. **Compare against original screenshot:**
-   - Reference the original Figma screenshot provided by user
+   - Read `.forge/screenshot.png` (original Figma design)
+   - Compare to `.forge/implementation.png` (current implementation)
    - Check layout structure (does it match?)
    - Check component positioning (are things in the right places?)
    - Check spacing between components
 
 3. **Verify against Figma specs checklist:**
-   - [ ] Typography matches (font, size, weight)
-   - [ ] Colors match (backgrounds, text, borders)
-   - [ ] Dimensions match (widths, heights)
-   - [ ] Spacing matches (padding, margins, gaps)
+   - Read `.forge/figma-specs.json` for exact values
+   - [ ] Typography matches (font, size, weight, line-height, color - exact values)
+   - [ ] Colors match (backgrounds, text, borders - exact hex values)
+   - [ ] Dimensions match (widths, heights - exact px values)
+   - [ ] Spacing matches (padding, margins, gaps - exact px values)
    - [ ] All components present
 
 4. **Output verdict:**
    - **PIXEL-PERFECT** - Matches screenshot and all specs pass
-   - **NEEDS WORK** - List specific failures with references to which component/area
+   - **NEEDS WORK** - List specific failures with exact values (e.g., "Padding is 16px, should be 24px")
 
 ### 5b. FIX IF NEEDED
 
@@ -351,15 +382,17 @@ Exit immediately when pixel-perfect. Don't waste iterations.
 
 ## Built-in Optimizations
 
-1. **Dual mode support** - Create new or refine existing components
-2. **Screenshot + Figma combo** - Visual context with precise specs
-3. **Single Figma MCP call** - Get all components at once
-4. **Parallel building** - Build multiple components simultaneously (optional)
-5. **Haiku for verification** - 90% cheaper than Sonnet for comparisons
-6. **Explicit checklists** - No ambiguity in verification
-7. **Early exit** - Stop when pixel-perfect
-8. **Surgical refinements** - Preserves logic, only updates styling (Edit tool)
-9. **Component detection** - Auto-finds existing components in refine mode
+1. **File-based workflow** - Saves specs/screenshots to `.forge/` directory, keeps context lean
+2. **Focused agent context** - Each agent reads only its component's specs, not all data
+3. **Dual mode support** - Create new or refine existing components
+4. **Screenshot + Figma combo** - Visual context with precise specs
+5. **Single Figma MCP call** - Get all components at once
+6. **Parallel building** - Build multiple components simultaneously (optional)
+7. **Haiku for verification** - 90% cheaper than Sonnet for comparisons
+8. **Explicit checklists** - No ambiguity in verification, exact values required
+9. **Early exit** - Stop when pixel-perfect
+10. **Surgical refinements** - Preserves logic, only updates styling (Edit tool)
+11. **Component detection** - Auto-finds existing components in refine mode
 
 ---
 
@@ -404,3 +437,21 @@ Provide a comprehensive summary:
 - Haiku page verification: ~$0.05-0.10 per run
 - Sonnet component fix: ~$0.20-0.40 per component
 - Opus re-analysis (if major issues): ~$0.50-0.80 per run
+
+---
+
+## Cleanup
+
+**After successful completion:**
+
+1. **Add `.forge/` to `.gitignore`** if not already present:
+   ```bash
+   echo ".forge/" >> .gitignore
+   ```
+
+2. **Optional: Remove `.forge/` directory** if you want to clean up:
+   ```bash
+   rm -rf .forge/
+   ```
+
+**Note:** The `.forge/` directory contains temporary files used during the build process. It's safe to delete after completion. It will be recreated on the next forge run.

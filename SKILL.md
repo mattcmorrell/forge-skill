@@ -99,23 +99,24 @@ Please attach a full-page screenshot showing the complete layout and composition
 
 ### Phase 2: Get Screenshot (Happens Second)
 
-1. **Prompt user:** "Please attach a full-page screenshot showing the layout"
+**IMMEDIATELY after confirming Figma capture, prompt for screenshot:**
 
-2. **Wait for screenshot upload**
+```
+Step 2: Upload screenshot
+Please attach a full-page screenshot showing the complete layout and composition of your page.
+```
 
-3. **Verify dev server** is running, start if needed (`npm run dev`)
+**STOP and wait for screenshot upload. Do NOT do anything else until screenshot is received.**
 
-### Phase 3: Detect Existing Components (Refinement Mode Only)
+### Phase 3: Post-Screenshot Setup
 
-**If mode is "refine":**
+**Only after screenshot is uploaded:**
 
-1. **Search for existing components** using Glob/Grep:
-   - Look in `/src/components/` and `/src/pages/` for potentially matching components
+1. **Verify dev server** is running, start if needed (`npm run dev`)
+
+2. **If mode is "refine"** - Search for existing components:
+   - Look in `/src/components/` and `/src/pages/` using Glob
    - Match by name similarity to Figma component names
-   - List found components with file paths
-
-2. **Identify which components exist:**
-   - For each Figma component, check if a matching file exists
    - Report: "Found existing: Header.tsx, Sidebar.tsx" and "Need to create: Footer.tsx"
 
 ### Summary

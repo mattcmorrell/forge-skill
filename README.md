@@ -56,23 +56,28 @@ A Claude Code skill that builds complete pages from Figma by combining screensho
 1. **Prepare in Figma:**
    - Group the main sections of your page (Header, Sidebar, MainContent, Footer, etc.)
    - Aim for 4-6 main components
-   - Multi-select all grouped components (or select parent Frame)
-   - Take a screenshot of the full page
+   - Take a screenshot of the full page (save it for step 4)
 
-2. **Run forge:**
+2. **Select components in Figma:**
+   - Multi-select all grouped components (or select parent Frame)
+
+3. **Run forge:**
    ```
    /forge
    ```
+   - Forge prompts: "Reply 'ready' when your selection is active"
+   - You reply: `ready`
+   - **Forge immediately captures component specs** (~5 seconds)
+   - Forge confirms: "✓ Got specs for 4 components. You can now work on other things in Figma."
 
-3. **Provide inputs:**
-   - Forge prompts: "Please attach screenshot and ensure components are selected in Figma"
-   - Upload your screenshot
-   - Confirm your Figma selection is active
+4. **Upload screenshot:**
+   - Forge prompts: "Please attach a full-page screenshot"
+   - Upload your screenshot (from step 1)
+   - **Your Figma selection doesn't need to stay active anymore!**
 
-4. **Watch it build:**
-   - Fetches all component specs from Figma in one call
+5. **Watch it build:**
    - Analyzes screenshot for layout/composition
-   - Creates build plan with all components
+   - Creates build plan using cached Figma specs
    - Builds components (in parallel if independent)
    - Verifies against screenshot
    - Reports cost breakdown

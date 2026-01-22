@@ -16,19 +16,31 @@ When invoked, **immediately respond with this:**
 ```
 📸 Ready to forge a page from Figma!
 
-Please provide:
+Step 1: Prepare your Figma selection
+- In Figma Desktop, select all main components on the page
+- Either multi-select the major components (Header, Sidebar, MainContent, etc.)
+- Or select the parent Frame containing all components
+- Aim for 4-6 main sections
 
-1. **Screenshot** - Attach a full-page screenshot showing the complete layout and composition
-
-2. **Figma Selection** - In Figma Desktop, select all main components on the page:
-   - Either multi-select the major components (Header, Sidebar, MainContent, etc.)
-   - Or select the parent Frame containing all components
-   - Aim for 4-6 main sections
-
-Once you upload the screenshot, I'll fetch the Figma specs and start building!
+Reply "ready" when your selection is active, and I'll capture the component specs immediately.
 ```
 
-**STOP here and wait for user to provide screenshot.**
+**STOP here and wait for user confirmation (e.g., "ready", "done", "ok").**
+
+### After User Confirms Selection
+
+**Immediately:**
+1. Call `mcp__figma-desktop__get_design_context()` to capture selected components
+2. Save/cache the Figma specs
+3. Confirm: "✓ Got specs for [N] components from Figma. You can now change your selection or work on other things in Figma."
+
+**Then prompt for screenshot:**
+```
+Step 2: Upload screenshot
+Please attach a full-page screenshot showing the complete layout and composition of your page.
+```
+
+**STOP and wait for screenshot upload.**
 
 ## How It Works
 
@@ -54,21 +66,37 @@ Once you upload the screenshot, I'll fetch the Figma specs and start building!
 
 ## Step 1: GATHER CONTEXT
 
-**Wait for user to provide:**
-1. Screenshot (attached image)
-2. Confirmation that Figma components are selected
+### Phase 1: Capture Figma Selection (Happens First)
 
-**Then fetch from Figma MCP:**
-```
-mcp__figma-desktop__get_design_context()
-```
-This returns ALL selected components with their specs (dimensions, colors, typography, spacing).
+1. **Wait for user confirmation** that Figma selection is ready (e.g., "ready", "done")
 
-**Save for reference:**
-- Screenshot → Use for composition/layout understanding
-- Figma specs → Use for precise component implementation
+2. **Immediately fetch from Figma MCP:**
+   ```
+   mcp__figma-desktop__get_design_context()
+   ```
+   This returns ALL selected components with their specs (dimensions, colors, typography, spacing).
 
-**Verify dev server** is running, start if needed (`npm run dev`)
+3. **Confirm to user:**
+   "✓ Got specs for [N] components. You can now work on other things in Figma."
+
+4. **Cache the Figma data** for use in later steps
+
+### Phase 2: Get Screenshot (Happens Second)
+
+1. **Prompt user:** "Please attach a full-page screenshot showing the layout"
+
+2. **Wait for screenshot upload**
+
+3. **Verify dev server** is running, start if needed (`npm run dev`)
+
+### Summary
+
+At this point you have:
+- Figma specs (captured and cached)
+- Screenshot (for composition/layout understanding)
+- Dev server running
+
+User's Figma selection can change - you already have the data!
 
 ---
 

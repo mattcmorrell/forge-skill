@@ -1,33 +1,44 @@
 ---
 name: forge
-description: Forge pixel-perfect UI from Figma designs - automatically builds new components or refines existing ones
-argument-hint: "[optional: component-name]"
+description: Forge pixel-perfect pages from Figma designs using screenshot context and component specs - builds multiple components intelligently
+argument-hint: ""
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, mcp__figma-desktop__*, mcp__playwright__*
 ---
 
-# /forge - Pixel-Perfect UI from Figma
+# /forge - Full Page Builder from Figma
 
-Forge transforms Figma designs into pixel-perfect code through an intelligent iterative workflow. It automatically determines whether to build from scratch or refine existing components.
+Forge builds complete pages from Figma by combining screenshot context (composition/layout) with precise component specs from Figma MCP.
 
-## Usage
+## Initial Prompt (Always Start Here)
 
-```bash
-# Select something in Figma, then just:
-/forge
+When invoked, **immediately respond with this:**
 
-# Or optionally specify a name:
-/forge RequestItem
+```
+📸 Ready to forge a page from Figma!
+
+Please provide:
+
+1. **Screenshot** - Attach a full-page screenshot showing the complete layout and composition
+
+2. **Figma Selection** - In Figma Desktop, select all main components on the page:
+   - Either multi-select the major components (Header, Sidebar, MainContent, etc.)
+   - Or select the parent Frame containing all components
+   - Aim for 4-6 main sections
+
+Once you upload the screenshot, I'll fetch the Figma specs and start building!
 ```
 
-The component name is inferred from the Figma selection if not provided.
+**STOP here and wait for user to provide screenshot.**
 
 ## How It Works
 
-1. **Assess** - Analyze Figma selection and existing codebase
-2. **Plan** - Create detailed specs with Opus
-3. **Build** - Implement with Sonnet
-4. **Verify** - Compare with Haiku
-5. **Iterate** - Fix discrepancies until pixel-perfect
+1. **Gather Context** - User uploads screenshot + has Figma components selected
+2. **Fetch Specs** - Get all selected components from Figma MCP in one call
+3. **Analyze Composition** - Use screenshot to understand layout/spatial relationships
+4. **Plan Page** - Create page structure with component breakdown (Opus)
+5. **Build Components** - Implement each component with precise specs (Sonnet, can be parallel)
+6. **Verify** - Compare against screenshot using Playwright (Haiku)
+7. **Iterate** - Fix discrepancies until pixel-perfect
 
 ## Model Tiering (Cost Optimized)
 
@@ -41,95 +52,136 @@ The component name is inferred from the Figma selection if not provided.
 
 ---
 
-## Step 1: SETUP
+## Step 1: GATHER CONTEXT
 
-1. **Verify dev server**
-   - Check if running, start if needed (`npm run dev`)
-   - Note the port for Playwright comparison
+**Wait for user to provide:**
+1. Screenshot (attached image)
+2. Confirmation that Figma components are selected
 
-2. **Fetch Figma selection**
-   - `mcp__figma-desktop__get_design_context` → design specs
-   - `mcp__figma-desktop__get_screenshot` → visual reference
-   - Cache for reuse across agents
+**Then fetch from Figma MCP:**
+```
+mcp__figma-desktop__get_design_context()
+```
+This returns ALL selected components with their specs (dimensions, colors, typography, spacing).
 
-3. **Create todo list** to track progress
+**Save for reference:**
+- Screenshot → Use for composition/layout understanding
+- Figma specs → Use for precise component implementation
+
+**Verify dev server** is running, start if needed (`npm run dev`)
 
 ---
 
-## Step 2: ASSESS & PLAN (Opus)
+## Step 2: ANALYZE & PLAN (Opus)
 
-Spawn a **Task agent with model: opus** to assess and plan:
+Spawn a **Task agent with model: opus** to analyze and create implementation plan:
 
-### Assessment Phase
+### Analysis Phase
 
-First, determine the approach by analyzing:
+Analyze both inputs together:
 
-1. **Does a matching component exist?**
-   - Search `/src/components/` and `/src/pages/` for similar names
-   - Read existing files if found
+1. **Screenshot Analysis** (Composition/Layout):
+   - Identify the page structure (grid, flex, columns)
+   - Note spatial relationships (how components are positioned relative to each other)
+   - Understand layout flow (header → content → footer, sidebar + main, etc.)
+   - Identify breakpoints and responsive behavior hints
 
-2. **How much work is needed?**
-   - If no component exists → **BUILD mode**
-   - If component exists but structure is wrong → **BUILD mode** (rebuild)
-   - If component exists and structure is close → **REFINE mode**
+2. **Figma Specs Analysis** (Component Details):
+   - Parse the Figma MCP response for each selected component
+   - Extract precise dimensions, colors (hex values), typography (font, size, weight, line-height)
+   - Note spacing/padding values
+   - Identify interactive states if present
 
-3. **Announce the decision:**
-   ```
-   MODE: BUILD - Creating new component from scratch
-   -- or --
-   MODE: REFINE - Modifying existing component at /src/components/X/X.tsx
-   ```
+3. **Component Mapping**:
+   - Match screenshot regions to Figma component specs
+   - Name each component appropriately (Header, Sidebar, MainContent, etc.)
+   - Create hierarchy (Page → Layout → Components)
 
 ### Planning Phase
 
-**For BUILD mode**, create:
-- Complete component architecture
-- File structure to create
-- Full implementation specs with code snippets
-- Data structures and TypeScript interfaces
-- Verification checklist
+Create a comprehensive build plan:
 
-**For REFINE mode**, create:
-- Current vs Target comparison table:
-  ```
-  | Property     | Current | Target  | Change |
-  |--------------|---------|---------|--------|
-  | Font size    | 40px    | 48px    | YES    |
-  | Color        | #38312f | #2e7918 | YES    |
-  ```
-- Specific changes needed (minimal, surgical)
-- Verification checklist
-
-### Output Requirements
-
-The plan MUST include an explicit **Verification Checklist**:
-```markdown
-## Verification Checklist
-- [ ] Font family: Fields Bold
-- [ ] Font size: 48px
-- [ ] Line height: 58px
-- [ ] Color: #2e7918
-- [ ] Padding top: 32px
-- [ ] Padding bottom: 24px
-- [ ] Padding horizontal: 32px
+**Page Structure:**
+```typescript
+// Example structure
+<PageLayout>
+  <Header /> {/* From Figma node-id: 1:234 */}
+  <BodyLayout>
+    <Sidebar /> {/* From Figma node-id: 2:345 */}
+    <MainContent /> {/* From Figma node-id: 3:456 */}
+  </BodyLayout>
+  <Footer /> {/* From Figma node-id: 4:567 */}
+</PageLayout>
 ```
+
+**For Each Component:**
+- File path to create (e.g., `/src/components/Header/Header.tsx`)
+- Component interface/props
+- Exact styling specs from Figma:
+  - Typography: font, size, weight, line-height, color (hex)
+  - Spacing: padding, margins, gaps (exact px values)
+  - Colors: backgrounds, borders, text (hex values)
+  - Dimensions: width, height
+- Layout approach (flex, grid, positioning)
+
+**Build Order:**
+- Can components be built in parallel? Or do some depend on others?
+- Recommend parallel if independent, sequential if dependencies exist
+
+**Verification Checklist:**
+For the overall page:
+- [ ] Layout structure matches screenshot
+- [ ] Component positioning matches
+- [ ] Spacing between components matches
+- [ ] Responsive behavior works
+
+Per component:
+- [ ] Typography matches Figma specs exactly
+- [ ] Colors match (use color picker if needed)
+- [ ] Dimensions match
+- [ ] Spacing/padding matches
 
 ---
 
 ## Step 3: IMPLEMENTATION (Sonnet)
 
-Spawn a **Task agent with model: sonnet** to implement:
+### Approach
 
-**BUILD mode:**
-- Create all files specified in the plan
-- Follow existing codebase patterns
-- Use design tokens from `/src/index.css`
-- Export components properly
+Based on the plan from Step 2, decide:
+- **Parallel** if components are independent (faster, more tokens)
+- **Sequential** if components depend on each other (safer, slower)
 
-**REFINE mode:**
-- Modify only what's specified
-- Keep changes minimal and focused
-- Preserve existing functionality
+### Parallel Implementation (Recommended)
+
+If components are independent, spawn **multiple Sonnet agents in parallel** (one per component):
+
+```
+Task 1 (Sonnet): Build Header component
+Task 2 (Sonnet): Build Sidebar component
+Task 3 (Sonnet): Build MainContent component
+Task 4 (Sonnet): Build Footer component
+```
+
+Each agent:
+- Creates its component file
+- Implements based on Figma specs from the plan
+- Uses existing design tokens from `/src/index.css`
+- Exports properly
+
+### Sequential Implementation (If Dependencies)
+
+If components depend on each other, spawn **one Sonnet agent** that builds in order:
+
+1. Build page layout structure first
+2. Build components one by one
+3. Integrate components into layout
+
+### All Implementations Must:
+- Follow existing codebase patterns (check `/src/components/` for examples)
+- Use TypeScript with proper types
+- Use design tokens (colors, spacing from CSS variables)
+- Export components via `index.ts` files
+- Follow the exact specs from the Figma plan
 
 ---
 
@@ -151,18 +203,26 @@ Fix any issues before proceeding.
 
 Spawn a **Task agent with model: haiku** with Playwright access:
 
-1. Navigate to the page
-2. Take screenshot of the implementation
-3. Check each item on the Verification Checklist:
-   - [ ] Typography correct?
-   - [ ] Colors correct?
-   - [ ] Spacing correct?
-   - [ ] Layout correct?
-   - [ ] Icons present?
+1. **Take implementation screenshot:**
+   - Navigate to the page via Playwright
+   - Take full-page screenshot
 
-4. Output verdict:
-   - **PIXEL-PERFECT** - All checks pass
-   - **NEEDS WORK** - List specific failures
+2. **Compare against original screenshot:**
+   - Reference the original Figma screenshot provided by user
+   - Check layout structure (does it match?)
+   - Check component positioning (are things in the right places?)
+   - Check spacing between components
+
+3. **Verify against Figma specs checklist:**
+   - [ ] Typography matches (font, size, weight)
+   - [ ] Colors match (backgrounds, text, borders)
+   - [ ] Dimensions match (widths, heights)
+   - [ ] Spacing matches (padding, margins, gaps)
+   - [ ] All components present
+
+4. **Output verdict:**
+   - **PIXEL-PERFECT** - Matches screenshot and all specs pass
+   - **NEEDS WORK** - List specific failures with references to which component/area
 
 ### 5b. FIX IF NEEDED
 
@@ -183,22 +243,33 @@ Exit immediately when pixel-perfect. Don't waste iterations.
 
 ## Cost Expectations
 
-| Scenario | Expected Cost |
-|----------|---------------|
-| Component refinement (1 iteration) | ~$0.50-1.00 |
-| Component build (1-2 iterations) | ~$1.50-2.50 |
-| Full page build (2-3 iterations) | ~$4-6 |
+| Phase | Model | Components | Est. Cost Per |
+|-------|-------|------------|---------------|
+| Analysis | Opus | 1 page | ~$0.50-0.80 |
+| Implementation (parallel) | Sonnet | Per component | ~$0.30-0.50 each |
+| Verification | Haiku | 1 page | ~$0.05-0.10 |
+| Fixes (if needed) | Sonnet | Per component | ~$0.20-0.40 each |
+
+**Example: Page with 4 components (1-2 iterations)**
+- Analysis: ~$0.60
+- Implementation: 4 × $0.40 = ~$1.60 (parallel)
+- Verification: 2 × $0.08 = ~$0.16
+- Fixes: 2 × $0.30 = ~$0.60
+- **Total: ~$3-4**
+
+**Note:** Parallel building is more expensive upfront (4 Sonnet agents running simultaneously) but much faster. Sequential building is cheaper but slower.
 
 ---
 
 ## Built-in Optimizations
 
-1. **Smart mode selection** - AI chooses build vs refine
-2. **Cached Figma context** - Fetch once, reuse
-3. **Haiku for verification** - 90% cheaper than Sonnet
-4. **Explicit checklists** - No ambiguity in comparison
-5. **Early exit** - Stop when pixel-perfect
-6. **Surgical refines** - Minimal changes when possible
+1. **Screenshot + Figma combo** - Visual context with precise specs
+2. **Single Figma MCP call** - Get all components at once
+3. **Parallel building** - Build multiple components simultaneously (optional)
+4. **Haiku for verification** - 90% cheaper than Sonnet for comparisons
+5. **Explicit checklists** - No ambiguity in verification
+6. **Early exit** - Stop when pixel-perfect
+7. **Component reuse** - Checks for existing similar components first
 
 ---
 
@@ -215,36 +286,30 @@ Exit immediately when pixel-perfect. Don't waste iterations.
 
 ---
 
-## Component Name (Optional)
-
-If provided: `$ARGUMENTS`
-
-If not provided: Infer the component name from the Figma selection metadata (layer name, frame name, etc.)
-
----
-
 ## Final Output
 
-Provide a summary:
-- **Mode used:** BUILD or REFINE
-- **Files created/modified**
-- **Iterations needed**
-- **Verification status**
-- **Estimated cost** (calculate based on what ran):
+Provide a comprehensive summary:
 
-  | Phase | Model | Runs | Est. Cost |
-  |-------|-------|------|-----------|
-  | Analysis | Opus | 1 | ~$0.40 |
-  | Implementation | Sonnet | X | ~$0.30 × X |
-  | Verification | Haiku | X | ~$0.03 × X |
-  | Fixes | Sonnet | X | ~$0.25 × X |
+- **Page built:** [Page Name]
+- **Components created:** List all components with file paths
+- **Build approach:** Parallel or Sequential
+- **Iterations needed:** X of 3
+- **Verification status:** PIXEL-PERFECT or remaining issues
+- **Estimated cost breakdown:**
+
+  | Phase | Model | Count | Est. Cost |
+  |-------|-------|-------|-----------|
+  | Analysis | Opus | 1 | ~$0.60 |
+  | Implementation | Sonnet | X components | ~$0.40 × X |
+  | Verification | Haiku | X iterations | ~$0.08 × X |
+  | Fixes | Sonnet | X components | ~$0.30 × X |
   | **Total** | | | **~$X.XX** |
 
-- **Any manual checks recommended**
+- **Manual checks:** Any recommended follow-up actions
 
 **Cost Reference:**
-- Opus analysis: ~$0.30-0.50 per run
-- Sonnet implementation: ~$0.20-0.40 per run
-- Haiku verification: ~$0.02-0.05 per run
-- Sonnet fix: ~$0.15-0.30 per run
-- Opus re-analysis (if major issues): ~$0.30-0.50 per run
+- Opus page analysis: ~$0.50-0.80 per run
+- Sonnet component build: ~$0.30-0.50 per component
+- Haiku page verification: ~$0.05-0.10 per run
+- Sonnet component fix: ~$0.20-0.40 per component
+- Opus re-analysis (if major issues): ~$0.50-0.80 per run

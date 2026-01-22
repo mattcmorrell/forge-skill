@@ -1,23 +1,25 @@
-# /forge - Pixel-Perfect UI from Figma
+# /forge - Full Page Builder from Figma
 
-A Claude Code skill that transforms Figma designs into pixel-perfect code through an intelligent iterative workflow.
+A Claude Code skill that builds complete pages from Figma by combining screenshot context with precise component specs.
 
 ## What is /forge?
 
-`/forge` is a custom skill for [Claude Code](https://claude.com/claude-code) that automates the design-to-code workflow:
+`/forge` is a custom skill for [Claude Code](https://claude.com/claude-code) that builds full pages using a hybrid approach:
 
-1. **Assess** - Analyzes Figma selection and existing codebase
-2. **Plan** - Creates detailed implementation specs using Opus
-3. **Build** - Implements with Sonnet (builds new or refines existing)
-4. **Verify** - Compares implementation against Figma using Haiku + Playwright
-5. **Iterate** - Fixes discrepancies until pixel-perfect (max 3 iterations)
+1. **Screenshot** - Provides layout and composition context
+2. **Figma MCP** - Provides precise component specifications
+3. **Analyze** - Opus creates comprehensive build plan
+4. **Build** - Sonnet implements components (parallel or sequential)
+5. **Verify** - Haiku + Playwright compares against screenshot
+6. **Iterate** - Fixes discrepancies until pixel-perfect (max 3 iterations)
 
 ## Features
 
-- 🎯 **Auto-detects mode** - Intelligently chooses BUILD vs REFINE based on your codebase
-- 💰 **Cost-optimized** - Smart model tiering (Opus for planning, Sonnet for implementation, Haiku for verification)
+- 📸 **Hybrid approach** - Screenshot for layout + Figma MCP for precision
+- ⚡ **Parallel building** - Build multiple components simultaneously (optional)
+- 🎯 **Smart grouping** - Select 4-6 main components in Figma, not 500 individual elements
+- 💰 **Cost-optimized** - Model tiering (Opus/Sonnet/Haiku) with transparent cost estimates
 - 🔄 **Iterative refinement** - Automatically compares and fixes until pixel-perfect
-- 📊 **Cost transparency** - Reports estimated costs for each phase
 - 🚀 **Zero configuration** - Works with any React/TypeScript codebase
 
 ## Installation
@@ -46,52 +48,75 @@ A Claude Code skill that transforms Figma designs into pixel-perfect code throug
 ## Usage
 
 ```bash
-# Select a component or page in Figma, then:
 /forge
-
-# Or optionally specify a name:
-/forge ComponentName
 ```
 
 ### Example Workflow
 
-1. Open Figma and select the design you want to implement
-2. In your terminal, navigate to your project
-3. Run `/forge`
-4. Watch as it:
-   - Analyzes the Figma design
-   - Decides whether to build new or refine existing
-   - Implements the component
-   - Verifies pixel-perfect accuracy
+1. **Prepare in Figma:**
+   - Group the main sections of your page (Header, Sidebar, MainContent, Footer, etc.)
+   - Aim for 4-6 main components
+   - Multi-select all grouped components (or select parent Frame)
+   - Take a screenshot of the full page
+
+2. **Run forge:**
+   ```
+   /forge
+   ```
+
+3. **Provide inputs:**
+   - Forge prompts: "Please attach screenshot and ensure components are selected in Figma"
+   - Upload your screenshot
+   - Confirm your Figma selection is active
+
+4. **Watch it build:**
+   - Fetches all component specs from Figma in one call
+   - Analyzes screenshot for layout/composition
+   - Creates build plan with all components
+   - Builds components (in parallel if independent)
+   - Verifies against screenshot
    - Reports cost breakdown
+
+**Result:** Complete page with pixel-perfect components!
 
 ## Cost Expectations
 
-| Scenario | Model Usage | Estimated Cost |
-|----------|-------------|----------------|
-| Component refinement | 1 Opus + 1 Sonnet + 1-2 Haiku | ~$0.50-1.00 |
-| New component build | 1 Opus + 1-2 Sonnet + 2-3 Haiku | ~$1.50-2.50 |
-| Full page build | 1-2 Opus + 2-3 Sonnet + 3-6 Haiku | ~$4-6 |
+**Example: Page with 4 components (1-2 iterations)**
+
+| Phase | Model | Count | Est. Cost |
+|-------|-------|-------|-----------|
+| Analysis | Opus | 1 | ~$0.60 |
+| Implementation | Sonnet | 4 (parallel) | ~$1.60 |
+| Verification | Haiku | 2 | ~$0.16 |
+| Fixes | Sonnet | 2 | ~$0.60 |
+| **Total** | | | **~$3-4** |
+
+**Note:** Parallel building uses more tokens upfront (multiple Sonnet agents) but completes much faster. Sequential building is cheaper but slower.
 
 ## How It Works
 
+### The Hybrid Approach
+
+**Screenshot provides:**
+- Overall page composition
+- Spatial relationships between components
+- Layout structure (grid, flex, positioning)
+- Visual context for "how things fit together"
+
+**Figma MCP provides:**
+- Exact dimensions (px values)
+- Precise colors (hex values)
+- Typography specs (font, size, weight, line-height)
+- Spacing values (padding, margins, gaps)
+- Component hierarchy and names
+
+**Together:** Visual context + precise specs = pixel-perfect implementation
+
 ### Model Tiering
 
-- **Opus** - Analysis and planning (high-quality comprehensive plans)
-- **Sonnet** - Implementation and fixes (capable, cost-effective)
-- **Haiku** - Verification (fast, cheap comparisons)
-
-### BUILD vs REFINE
-
-The skill automatically determines the approach:
-
-- **BUILD mode** - Creates new components from scratch when:
-  - No matching component exists
-  - Existing component has wrong structure
-
-- **REFINE mode** - Makes surgical modifications when:
-  - Component exists and structure is close
-  - Only styling/spacing needs adjustment
+- **Opus** - Page analysis and comprehensive build planning
+- **Sonnet** - Component implementation (parallel or sequential)
+- **Haiku** - Fast verification against screenshot + specs
 
 ### Exit Criteria
 

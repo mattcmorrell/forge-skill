@@ -1,23 +1,26 @@
 # /forge - Full Page Builder from Figma
 
-A Claude Code skill that builds complete pages from Figma by combining screenshot context with precise component specs.
+A Claude Code skill that creates new pages or refines existing components from Figma by combining screenshot context with precise component specs.
 
 ## What is /forge?
 
 `/forge` is a custom skill for [Claude Code](https://claude.com/claude-code) that builds full pages using a hybrid approach:
 
-1. **Screenshot** - Provides layout and composition context
-2. **Figma MCP** - Provides precise component specifications
-3. **Analyze** - Opus creates comprehensive build plan
-4. **Build** - Sonnet implements components (parallel or sequential)
-5. **Verify** - Haiku + Playwright compares against screenshot
-6. **Iterate** - Fixes discrepancies until pixel-perfect (max 3 iterations)
+1. **Mode Selection** - Choose to create new or refine existing components
+2. **Screenshot** - Provides layout and composition context
+3. **Figma MCP** - Provides precise component specifications
+4. **Analyze** - Opus creates comprehensive build plan
+5. **Build/Refine** - Sonnet creates new or updates existing components (parallel or sequential)
+6. **Verify** - Haiku + Playwright compares against screenshot
+7. **Iterate** - Fixes discrepancies until pixel-perfect (max 3 iterations)
 
 ## Features
 
+- 🎭 **Dual mode** - Create new components or refine existing ones
 - 📸 **Hybrid approach** - Screenshot for layout + Figma MCP for precision
 - ⚡ **Parallel building** - Build multiple components simultaneously (optional)
 - 🎯 **Smart grouping** - Select 4-6 main components in Figma, not 500 individual elements
+- 🔧 **Surgical refinements** - Preserves logic, only updates styling in refine mode
 - 💰 **Cost-optimized** - Model tiering (Opus/Sonnet/Haiku) with transparent cost estimates
 - 🔄 **Iterative refinement** - Automatically compares and fixes until pixel-perfect
 - 🚀 **Zero configuration** - Works with any React/TypeScript codebase
@@ -56,7 +59,7 @@ A Claude Code skill that builds complete pages from Figma by combining screensho
 1. **Prepare in Figma:**
    - Group the main sections of your page (Header, Sidebar, MainContent, Footer, etc.)
    - Aim for 4-6 main components
-   - Take a screenshot of the full page (save it for step 4)
+   - Take a screenshot of the full page (save it for step 5)
 
 2. **Select components in Figma:**
    - Multi-select all grouped components (or select parent Frame)
@@ -65,20 +68,24 @@ A Claude Code skill that builds complete pages from Figma by combining screensho
    ```
    /forge
    ```
+   - Forge asks: "Creating new or refining existing?"
+   - You reply: `1` (new) or `2` (refine)
+
+4. **Capture components:**
    - Forge prompts: "Reply 'ready' when your selection is active"
    - You reply: `ready`
    - **Forge immediately captures component specs** (~5 seconds)
    - Forge confirms: "✓ Got specs for 4 components. You can now work on other things in Figma."
 
-4. **Upload screenshot:**
+5. **Upload screenshot:**
    - Forge prompts: "Please attach a full-page screenshot"
    - Upload your screenshot (from step 1)
    - **Your Figma selection doesn't need to stay active anymore!**
 
-5. **Watch it build:**
+6. **Watch it build:**
    - Analyzes screenshot for layout/composition
    - Creates build plan using cached Figma specs
-   - Builds components (in parallel if independent)
+   - Creates/refines components (in parallel if independent)
    - Verifies against screenshot
    - Reports cost breakdown
 

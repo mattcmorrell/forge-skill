@@ -1,13 +1,13 @@
 ---
 name: forge
-description: Forge pixel-perfect pages from Figma designs using screenshot context and component specs - builds multiple components intelligently
+description: Forge pixel-perfect pages from Figma - creates new components or refines existing ones using screenshot context and component specs
 argument-hint: ""
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, TodoWrite, mcp__figma-desktop__*, mcp__playwright__*
 ---
 
 # /forge - Full Page Builder from Figma
 
-Forge builds complete pages from Figma by combining screenshot context (composition/layout) with precise component specs from Figma MCP.
+Forge builds complete pages from Figma by combining screenshot context (composition/layout) with precise component specs from Figma MCP. Supports both creating new components and refining existing ones.
 
 ## Initial Prompt (Always Start Here)
 
@@ -16,6 +16,20 @@ When invoked, **immediately respond with this:**
 ```
 📸 Ready to forge a page from Figma!
 
+Are you:
+1. Creating a new page/components from scratch
+2. Refining existing components to match Figma
+
+(Reply with "1" or "create" for new, "2" or "refine" for existing)
+```
+
+**STOP and wait for mode selection.**
+
+### After Mode Selection
+
+**Then continue with:**
+
+```
 Step 1: Prepare your Figma selection
 - In Figma Desktop, select all main components on the page
 - Either multi-select the major components (Header, Sidebar, MainContent, etc.)
@@ -44,13 +58,15 @@ Please attach a full-page screenshot showing the complete layout and composition
 
 ## How It Works
 
-1. **Gather Context** - User uploads screenshot + has Figma components selected
-2. **Fetch Specs** - Get all selected components from Figma MCP in one call
-3. **Analyze Composition** - Use screenshot to understand layout/spatial relationships
-4. **Plan Page** - Create page structure with component breakdown (Opus)
-5. **Build Components** - Implement each component with precise specs (Sonnet, can be parallel)
-6. **Verify** - Compare against screenshot using Playwright (Haiku)
-7. **Iterate** - Fix discrepancies until pixel-perfect
+1. **Select Mode** - Choose create (new) or refine (existing)
+2. **Gather Context** - User uploads screenshot + has Figma components selected
+3. **Fetch Specs** - Get all selected components from Figma MCP in one call
+4. **Detect Existing** - In refine mode, find existing component files
+5. **Analyze Composition** - Use screenshot to understand layout/spatial relationships
+6. **Plan Page** - Create page structure with component breakdown (Opus)
+7. **Build/Refine Components** - Create new or update existing with precise specs (Sonnet, can be parallel)
+8. **Verify** - Compare against screenshot using Playwright (Haiku)
+9. **Iterate** - Fix discrepancies until pixel-perfect
 
 ## Model Tiering (Cost Optimized)
 
@@ -89,12 +105,27 @@ Please attach a full-page screenshot showing the complete layout and composition
 
 3. **Verify dev server** is running, start if needed (`npm run dev`)
 
+### Phase 3: Detect Existing Components (Refinement Mode Only)
+
+**If mode is "refine":**
+
+1. **Search for existing components** using Glob/Grep:
+   - Look in `/src/components/` and `/src/pages/` for potentially matching components
+   - Match by name similarity to Figma component names
+   - List found components with file paths
+
+2. **Identify which components exist:**
+   - For each Figma component, check if a matching file exists
+   - Report: "Found existing: Header.tsx, Sidebar.tsx" and "Need to create: Footer.tsx"
+
 ### Summary
 
 At this point you have:
-- Figma specs (captured and cached)
-- Screenshot (for composition/layout understanding)
-- Dev server running
+- **Mode:** Create or Refine
+- **Figma specs** (captured and cached)
+- **Screenshot** (for composition/layout understanding)
+- **Dev server** running
+- **Existing components** (if refinement mode)
 
 User's Figma selection can change - you already have the data!
 
@@ -102,7 +133,9 @@ User's Figma selection can change - you already have the data!
 
 ## Step 2: ANALYZE & PLAN (Opus)
 
-Spawn a **Task agent with model: opus** to analyze and create implementation plan:
+Spawn a **Task agent with model: opus** to analyze and create implementation plan.
+
+**Pass the mode (create/refine) and existing component info to the agent.**
 
 ### Analysis Phase
 
@@ -143,7 +176,8 @@ Create a comprehensive build plan:
 ```
 
 **For Each Component:**
-- File path to create (e.g., `/src/components/Header/Header.tsx`)
+- File path (create new or refine existing)
+- **Mode:** CREATE or REFINE
 - Component interface/props
 - Exact styling specs from Figma:
   - Typography: font, size, weight, line-height, color (hex)
@@ -151,6 +185,7 @@ Create a comprehensive build plan:
   - Colors: backgrounds, borders, text (hex values)
   - Dimensions: width, height
 - Layout approach (flex, grid, positioning)
+- **If REFINE mode:** List what needs to change (only styling/structure, preserve logic)
 
 **Build Order:**
 - Can components be built in parallel? Or do some depend on others?
@@ -184,11 +219,13 @@ Based on the plan from Step 2, decide:
 If components are independent, spawn **multiple Sonnet agents in parallel** (one per component):
 
 ```
-Task 1 (Sonnet): Build Header component
-Task 2 (Sonnet): Build Sidebar component
-Task 3 (Sonnet): Build MainContent component
-Task 4 (Sonnet): Build Footer component
+Task 1 (Sonnet): Build/Refine Header component
+Task 2 (Sonnet): Build/Refine Sidebar component
+Task 3 (Sonnet): Build/Refine MainContent component
+Task 4 (Sonnet): Build/Refine Footer component
 ```
+
+### CREATE Mode (New Components)
 
 Each agent:
 - Creates its component file
@@ -196,12 +233,31 @@ Each agent:
 - Uses existing design tokens from `/src/index.css`
 - Exports properly
 
+### REFINE Mode (Existing Components)
+
+Each agent:
+- **Reads the existing component file first**
+- **Preserves all logic:** event handlers, state, effects, business logic, data fetching
+- **Preserves props interface** (unless structure changed in Figma)
+- **Only updates styling:**
+  - Inline styles or styled-components
+  - Typography (font-family, font-size, font-weight, line-height, color)
+  - Spacing (padding, margin, gap)
+  - Colors (background, border)
+  - Dimensions (width, height)
+  - Layout (flex, grid properties)
+- **Uses Edit tool for surgical changes** (not Write - preserve existing code)
+- **If JSX structure must change** (e.g., add/remove elements to match Figma):
+  - Make minimal changes
+  - Preserve existing event handlers and refs
+  - Keep all logic intact
+
 ### Sequential Implementation (If Dependencies)
 
 If components depend on each other, spawn **one Sonnet agent** that builds in order:
 
-1. Build page layout structure first
-2. Build components one by one
+1. Build/refine page layout structure first
+2. Build/refine components one by one
 3. Integrate components into layout
 
 ### All Implementations Must:
@@ -210,6 +266,7 @@ If components depend on each other, spawn **one Sonnet agent** that builds in or
 - Use design tokens (colors, spacing from CSS variables)
 - Export components via `index.ts` files
 - Follow the exact specs from the Figma plan
+- **In REFINE mode:** Preserve all existing functionality
 
 ---
 
@@ -285,19 +342,23 @@ Exit immediately when pixel-perfect. Don't waste iterations.
 - Fixes: 2 × $0.30 = ~$0.60
 - **Total: ~$3-4**
 
-**Note:** Parallel building is more expensive upfront (4 Sonnet agents running simultaneously) but much faster. Sequential building is cheaper but slower.
+**Note:**
+- Parallel building is more expensive upfront (4 Sonnet agents running simultaneously) but much faster. Sequential building is cheaper but slower.
+- Refinement mode is typically cheaper than create mode since changes are surgical (Edit tool vs Write tool, preserving existing code)
 
 ---
 
 ## Built-in Optimizations
 
-1. **Screenshot + Figma combo** - Visual context with precise specs
-2. **Single Figma MCP call** - Get all components at once
-3. **Parallel building** - Build multiple components simultaneously (optional)
-4. **Haiku for verification** - 90% cheaper than Sonnet for comparisons
-5. **Explicit checklists** - No ambiguity in verification
-6. **Early exit** - Stop when pixel-perfect
-7. **Component reuse** - Checks for existing similar components first
+1. **Dual mode support** - Create new or refine existing components
+2. **Screenshot + Figma combo** - Visual context with precise specs
+3. **Single Figma MCP call** - Get all components at once
+4. **Parallel building** - Build multiple components simultaneously (optional)
+5. **Haiku for verification** - 90% cheaper than Sonnet for comparisons
+6. **Explicit checklists** - No ambiguity in verification
+7. **Early exit** - Stop when pixel-perfect
+8. **Surgical refinements** - Preserves logic, only updates styling (Edit tool)
+9. **Component detection** - Auto-finds existing components in refine mode
 
 ---
 
@@ -318,8 +379,9 @@ Exit immediately when pixel-perfect. Don't waste iterations.
 
 Provide a comprehensive summary:
 
+- **Mode:** CREATE or REFINE
 - **Page built:** [Page Name]
-- **Components created:** List all components with file paths
+- **Components created/refined:** List all components with file paths
 - **Build approach:** Parallel or Sequential
 - **Iterations needed:** X of 3
 - **Verification status:** PIXEL-PERFECT or remaining issues

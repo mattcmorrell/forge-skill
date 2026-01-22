@@ -141,7 +141,10 @@ Forge saves data to a `.forge/` directory to keep context lean and ensure precis
 - Fresh data on every read (no stale context)
 
 **Cleanup:**
-Add `.forge/` to your `.gitignore`. The directory is recreated on each forge run and can be safely deleted after completion.
+- `.forge/` is automatically cleaned and recreated at the start of each forge run
+- Only contains data for the current run (no confusion between multiple sessions)
+- Add `.forge/` to your `.gitignore`
+- Safe to delete after completion or leave for debugging
 
 ### Model Tiering
 

@@ -82,6 +82,17 @@ Please attach a full-page screenshot showing the complete layout and composition
 
 ## Step 1: GATHER CONTEXT
 
+### Phase 0: Setup (First Thing)
+
+**Before doing anything else:**
+
+1. **Clean up previous run:**
+   ```bash
+   rm -rf .forge/
+   mkdir .forge/
+   ```
+   This ensures `.forge/` only contains data for the CURRENT run, preventing confusion between multiple forge sessions.
+
 ### Phase 1: Capture Figma Selection (Happens First)
 
 1. **Wait for user confirmation** that Figma selection is ready (e.g., "ready", "done")
@@ -93,7 +104,6 @@ Please attach a full-page screenshot showing the complete layout and composition
    This returns ALL selected components with their specs (dimensions, colors, typography, spacing).
 
 3. **Save specs to file:**
-   - Create `.forge/` directory if needed
    - Write specs to `.forge/figma-specs.json`
    - This keeps specs out of context, reduces token bloat
 
@@ -454,4 +464,8 @@ Provide a comprehensive summary:
    rm -rf .forge/
    ```
 
-**Note:** The `.forge/` directory contains temporary files used during the build process. It's safe to delete after completion. It will be recreated on the next forge run.
+**Note:**
+- The `.forge/` directory contains temporary files for the CURRENT forge run only
+- Each forge run automatically cleans and recreates `.forge/` at startup
+- Safe to delete after completion, or leave it for debugging
+- Add to `.gitignore` to avoid committing temporary files

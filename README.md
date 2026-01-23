@@ -1,32 +1,31 @@
-# /forge - Full Page Builder from Figma
+# /forge - Simple Figma URL Builder
 
-A Claude Code skill that automatically creates new pages or refines existing components from Figma by combining screenshot context with precise component specs.
+A Claude Code skill that builds pixel-perfect pages from Figma URLs using a straightforward approach that achieves better results than complex multi-phase workflows.
 
 ## What is /forge?
 
-`/forge` is a custom skill for [Claude Code](https://claude.com/claude-code) that builds full pages using a hybrid approach:
+`/forge` is a custom skill for [Claude Code](https://claude.com/claude-code) that builds pages from Figma URLs:
 
-1. **Screenshot** - Provides layout and composition context
-2. **Figma MCP** - Provides precise component specifications
-3. **Auto-Detect** - Automatically determines which components exist vs. need creation
-4. **Analyze** - Opus creates comprehensive build plan with per-component actions
-5. **Build/Refine** - Sonnet creates new or updates existing components (parallel or sequential)
-6. **Verify** - Haiku + Playwright compares against screenshot
-7. **Iterate** - Fixes discrepancies until pixel-perfect (max 3 iterations)
+1. **Provide URLs** - Paste Figma component URLs (or parent frame URLs)
+2. **Decompose** - Auto-discovers child components from parent frames
+3. **Fetch Specs** - Gets precise specs for all components in parallel
+4. **Clarify** - Optionally asks questions if behavior is ambiguous
+5. **Build in Parallel** - Spawns agents to build all components simultaneously
+6. **Assemble** - Creates page component using screenshot for layout context
+
+**Result: Pixel-perfect implementation with minimal complexity.**
 
 ## Features
 
-- 🤖 **Auto-detection** - Automatically determines which components to create vs. refine
-- 📦 **Container extraction** - Extracts card/wrapper styling from parent groups automatically
-- 🎭 **Mixed operations** - Can create new and refine existing in a single run
-- 📸 **Hybrid approach** - Screenshot for layout + Figma MCP for precision
-- 📁 **File-based workflow** - Saves specs to `.forge/` directory, keeps context lean for precision
-- ⚡ **Parallel building** - Build multiple components simultaneously (optional)
-- 🎯 **Smart grouping** - Select parent groups or individual components - both work
-- 🔧 **Surgical refinements** - Preserves logic, only updates styling when refining
-- 💰 **Cost-optimized** - Model tiering (Opus/Sonnet/Haiku) with transparent cost estimates
-- 🔄 **Iterative refinement** - Automatically compares and fixes until pixel-perfect
-- 🚀 **Zero configuration** - Works with any React/TypeScript codebase
+- 🔗 **URL-based** - Works from Figma URLs instead of selections (more accurate, reproducible)
+- 🔍 **Auto-decomposition** - Discovers child components from parent frame URLs
+- ⚡ **Parallel building** - Builds all components simultaneously with separate agents
+- 📸 **Screenshot layout** - Uses full-page screenshot for component composition
+- 💬 **Smart clarification** - Only asks questions when behavior is genuinely ambiguous
+- 🎯 **Pixel-perfect** - Achieves better accuracy than complex multi-phase approaches
+- 🚀 **Simple workflow** - No analysis phases, verification loops, or iterations
+- 💰 **Cost-efficient** - Straightforward parallel building, no expensive verification cycles
+- 🔧 **Zero configuration** - Works with any React/TypeScript codebase
 
 ## Installation
 
@@ -60,147 +59,103 @@ A Claude Code skill that automatically creates new pages or refines existing com
 ### Example Workflow
 
 1. **Prepare in Figma:**
-   - Group the main sections of your page (Header, Sidebar, MainContent, Footer, etc.)
-   - Aim for 4-6 main components
-   - Take a screenshot of the full page (save it for step 5)
+   - Take a screenshot of your full page (save for step 3)
+   - Right-click main components → "Copy link"
+   - Can copy parent frame URL (forge auto-discovers children)
+   - Or copy individual component URLs
 
-2. **Select components in Figma:**
-   - Multi-select all grouped components (or select parent Frame)
-
-3. **Run forge:**
+2. **Run forge:**
    ```
    /forge
    ```
-   - Forge prompts: "Reply 'ready' when your selection is active"
-   - You reply: `ready`
-   - **Forge immediately captures component specs** (~5 seconds)
-   - Forge confirms: "✓ Got specs for 4 components. You can now work on other things in Figma."
 
-4. **Upload screenshot:**
-   - Forge prompts: "Please attach a full-page screenshot"
-   - Upload your screenshot (from step 1)
-   - **Your Figma selection doesn't need to stay active anymore!**
+3. **Provide screenshot and URLs:**
+   - Paste your screenshot
+   - Paste Figma URLs (one per line)
 
-5. **Watch it build:**
-   - Auto-detects which components exist vs. need creation
-   - Analyzes screenshot for layout/composition
-   - Creates build plan with per-component actions
-   - Creates/refines components (in parallel if independent)
-   - Verifies against screenshot
-   - Reports cost breakdown
+   Example:
+   ```
+   https://www.figma.com/design/3Vs1Y.../node-id=656-22960
+   https://www.figma.com/design/3Vs1Y.../node-id=660-24330
+   ```
 
-**Result:** Complete page with pixel-perfect components!
+4. **Watch it build:**
+   - Decomposes URLs to find child components
+   - Fetches all specs in parallel
+   - Asks clarifying questions if needed (optional)
+   - Builds all components in parallel with separate agents
+   - Assembles page using screenshot for layout
 
-## Cost Expectations
-
-**Example: Page with 4 components (1-2 iterations)**
-
-| Phase | Model | Count | Est. Cost |
-|-------|-------|-------|-----------|
-| Analysis | Opus | 1 | ~$0.60 |
-| Implementation | Sonnet | 4 (parallel) | ~$1.60 |
-| Verification | Haiku | 2 | ~$0.16 |
-| Fixes | Sonnet | 2 | ~$0.60 |
-| **Total** | | | **~$3-4** |
-
-**Note:** Parallel building uses more tokens upfront (multiple Sonnet agents) but completes much faster. Sequential building is cheaper but slower.
+**Result:** Pixel-perfect page in one pass!
 
 ## How It Works
 
-### The Hybrid Approach
+### URL-Based Decomposition
 
-**Screenshot provides:**
-- Overall page composition
-- Spatial relationships between components
-- Layout structure (grid, flex, positioning)
-- Visual context for "how things fit together"
+**Step 1: Provide Figma URLs**
+- Right-click components in Figma Desktop → "Copy link"
+- Can provide parent frame URLs or individual component URLs
+- Example: `https://www.figma.com/design/3Vs1Y.../node-id=656-22960`
 
-**Figma MCP provides:**
-- Exact dimensions (px values)
-- Precise colors (hex values)
-- Typography specs (font, size, weight, line-height)
-- Spacing values (padding, margins, gaps)
-- Component hierarchy and names
+**Step 2: Auto-Discover Components**
+- Forge extracts node ID from URL (e.g., `656-22960` → `656:22960`)
+- Calls `get_metadata(nodeId)` to check for children
+- If parent has child components, extracts them automatically
+- Builds list of all components to create
 
-**Together:** Visual context + precise specs = pixel-perfect implementation
+**Step 3: Fetch Precise Specs**
+- Calls `get_design_context(nodeId)` for each component in parallel
+- Gets exact dimensions, colors, typography, spacing from Figma
+- Calls `get_screenshot(nodeId)` for visual reference
+- All data retrieved simultaneously (fast)
 
-### File-Based Workflow
+**Step 4: Optional Clarification**
+- Only asks questions if behavior is genuinely ambiguous
+- Example: "Should this button open a modal or navigate?"
+- If no ambiguity, makes reasonable assumptions and proceeds
 
-Forge saves data to a `.forge/` directory to keep context lean and ensure precision:
+**Step 5: Parallel Building**
+- Spawns separate agents for each component
+- Each agent builds one component with focused specs
+- All agents run simultaneously
+- No complex orchestration or intermediate steps
 
-- **`.forge/figma-specs.json`** - Exact component specs from Figma MCP
-- **`.forge/screenshot.png`** - Original design screenshot
-- **`.forge/plan.md`** - Comprehensive build plan from Opus
-- **`.forge/implementation.png`** - Current implementation screenshot (for comparison)
+**Step 6: Page Assembly**
+- Creates page component that imports all built components
+- Uses screenshot to determine layout (positioning, nesting, structure)
+- Ensures components compose correctly
 
-**Why this matters:**
-- Each agent reads **only** its component's specs (not all 6 components)
-- Reduces token bloat in context by ~70%
-- Small details like spacing (24px vs 16px) don't get lost in noise
-- Fresh data on every read (no stale context)
+### Why This Works
 
-**Cleanup:**
-- `.forge/` is automatically cleaned and recreated at the start of each forge run
-- Only contains data for the current run (no confusion between multiple sessions)
-- Add `.forge/` to your `.gitignore`
-- Safe to delete after completion or leave for debugging
+**URL-based is more accurate:**
+- Direct node ID fetching gives cleaner, more complete specs
+- No timing issues with selections staying active
+- Reproducible (same URLs = same results every time)
+- Parallel fetching is fast
 
-### Container Extraction
+**Simple workflow achieves better results:**
+- No analysis phase to lose precision
+- No verification loop with iterative fixes
+- Each agent gets focused data directly from Figma
+- Straightforward decompose → build → assemble
 
-Forge automatically handles the common pattern where grouped components have container styling:
+**Result: Pixel-perfect in one pass**
 
-**The Problem:**
-```
-In Figma: [White Card Group with rounded corners, shadow, padding]
-  ├─ Profile Header
-  ├─ Vitals Sidebar
-  └─ Performance Content
-```
+### Cost Expectations
 
-If you select just the children → miss the card container styling
-If you select the whole group → works, but Forge extracts it intelligently
+**Example: Page with 4-6 components**
+- Decomposition: ~$0.20 (metadata + specs fetching)
+- Parallel building: 6 × ~$0.40 = ~$2.40 (Sonnet agents)
+- Page assembly: ~$0.20 (composition)
+- **Total: ~$2.80-3.00**
 
-**What Forge Does:**
-1. Detects parent has container styling (background, border-radius, box-shadow, padding)
-2. Extracts container into separate component: `PerformancePageCard.tsx`
-3. Identifies children as independent components
-4. Build order: Container first → then children in parallel
-
-**Result:**
-```typescript
-<PerformancePageCard>  {/* White card with styling */}
-  <ProfileHeader />
-  <VitalsSidebar />
-  <PerformanceContent />
-</PerformancePageCard>
-```
-
-**You can select either way:**
-- Select parent group → Forge extracts container + children
-- Multi-select children → Forge detects missing container and asks
-
-### Model Tiering
-
-- **Opus** - Page analysis and comprehensive build planning
-- **Sonnet** - Component implementation (parallel or sequential)
-- **Haiku** - Fast verification against screenshot + specs
-
-### Exit Criteria
-
-Achieves "pixel-perfect" when:
-- Typography matches (font, size, weight, line-height, color)
-- Spacing matches (padding, margins, gaps)
-- Colors match (backgrounds, borders, text)
-- Layout structure matches
-
-Maximum 3 iterations with early exit when perfect.
+Much more cost-efficient than complex multi-phase approaches with verification loops.
 
 ## Requirements
 
 - Node.js project with React + TypeScript
-- Design tokens defined in CSS
-- Dev server running (for Playwright verification)
-- Figma Desktop app with selection ready
+- Figma Desktop app installed and running
+- Figma Desktop MCP server configured (see Installation)
 
 ## Permissions
 
@@ -209,7 +164,19 @@ The skill uses these tools (pre-approved when invoked):
 - Development: `Bash` (for npm, git, etc.)
 - Orchestration: `Task`, `TodoWrite`
 - Figma MCP: `mcp__figma-desktop__*`
-- Playwright MCP: `mcp__playwright__*`
+
+## Legacy Approach
+
+The original forge used a complex multi-phase workflow (Opus analysis → Sonnet implementation → Haiku verification → iteration loop). While sophisticated, it achieved only ~75% accuracy.
+
+The current simple URL-based approach achieves pixel-perfect results by:
+- Eliminating intermediate analysis/verification phases
+- Using URL-based specs (cleaner data than selection-based)
+- Direct parallel building without orchestration overhead
+
+**The legacy implementation is preserved in `SKILL-legacy.md` for reference.**
+
+Key lesson: **Simple workflows with clean data > complex workflows with transformations.**
 
 ## Contributing
 

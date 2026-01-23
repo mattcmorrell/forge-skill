@@ -17,11 +17,12 @@ A Claude Code skill that automatically creates new pages or refines existing com
 ## Features
 
 - 🤖 **Auto-detection** - Automatically determines which components to create vs. refine
+- 📦 **Container extraction** - Extracts card/wrapper styling from parent groups automatically
 - 🎭 **Mixed operations** - Can create new and refine existing in a single run
 - 📸 **Hybrid approach** - Screenshot for layout + Figma MCP for precision
 - 📁 **File-based workflow** - Saves specs to `.forge/` directory, keeps context lean for precision
 - ⚡ **Parallel building** - Build multiple components simultaneously (optional)
-- 🎯 **Smart grouping** - Select 4-6 main components in Figma, not 500 individual elements
+- 🎯 **Smart grouping** - Select parent groups or individual components - both work
 - 🔧 **Surgical refinements** - Preserves logic, only updates styling when refining
 - 💰 **Cost-optimized** - Model tiering (Opus/Sonnet/Haiku) with transparent cost estimates
 - 🔄 **Iterative refinement** - Automatically compares and fixes until pixel-perfect
@@ -143,6 +144,40 @@ Forge saves data to a `.forge/` directory to keep context lean and ensure precis
 - Only contains data for the current run (no confusion between multiple sessions)
 - Add `.forge/` to your `.gitignore`
 - Safe to delete after completion or leave for debugging
+
+### Container Extraction
+
+Forge automatically handles the common pattern where grouped components have container styling:
+
+**The Problem:**
+```
+In Figma: [White Card Group with rounded corners, shadow, padding]
+  ├─ Profile Header
+  ├─ Vitals Sidebar
+  └─ Performance Content
+```
+
+If you select just the children → miss the card container styling
+If you select the whole group → works, but Forge extracts it intelligently
+
+**What Forge Does:**
+1. Detects parent has container styling (background, border-radius, box-shadow, padding)
+2. Extracts container into separate component: `PerformancePageCard.tsx`
+3. Identifies children as independent components
+4. Build order: Container first → then children in parallel
+
+**Result:**
+```typescript
+<PerformancePageCard>  {/* White card with styling */}
+  <ProfileHeader />
+  <VitalsSidebar />
+  <PerformanceContent />
+</PerformancePageCard>
+```
+
+**You can select either way:**
+- Select parent group → Forge extracts container + children
+- Multi-select children → Forge detects missing container and asks
 
 ### Model Tiering
 

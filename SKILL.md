@@ -168,22 +168,39 @@ Analyze both inputs together:
    - Name each component appropriately (Header, Sidebar, MainContent, etc.)
    - Create hierarchy (Page → Layout → Components)
 
+4. **Container Extraction** (Critical):
+   - **Check if parent/group has container styling** (background, border-radius, shadow, padding)
+   - If yes, extract container as separate component: e.g., `PerformancePageCard.tsx`
+   - Container styling includes: background colors, border-radius, box-shadow, padding, borders
+   - Children become separate components nested inside: `<PageCard><ProfileHeader /><VitalsSidebar />...</PageCard>`
+   - **This prevents missing card/container styling when selecting grouped components**
+
 ### Planning Phase
 
 Create a comprehensive build plan and save to `.forge/plan.md`:
 
 **Page Structure:**
 ```typescript
-// Example structure
+// Example structure with container extraction
 <PageLayout>
-  <Header /> {/* From Figma node-id: 1:234 */}
-  <BodyLayout>
-    <Sidebar /> {/* From Figma node-id: 2:345 */}
-    <MainContent /> {/* From Figma node-id: 3:456 */}
-  </BodyLayout>
-  <Footer /> {/* From Figma node-id: 4:567 */}
+  <PerformancePageCard> {/* Container from parent group - node-id: 1:100 */}
+    <ProfileHeader /> {/* From Figma node-id: 1:234 */}
+    <BodyLayout>
+      <VitalsSidebar /> {/* From Figma node-id: 2:345 */}
+      <PerformanceContent /> {/* From Figma node-id: 3:456 */}
+    </BodyLayout>
+  </PerformancePageCard>
 </PageLayout>
 ```
+
+**Container Extraction Example:**
+If the parent group has:
+- Background: white (#FFFFFF)
+- Border-radius: 16px
+- Box-shadow: 0px 4px 12px rgba(0,0,0,0.1)
+- Padding: 24px
+
+Extract this as `PerformancePageCard.tsx` component, then nest the children inside it.
 
 **For Each Component:**
 - File path (create new or refine existing)
@@ -200,8 +217,11 @@ Create a comprehensive build plan and save to `.forge/plan.md`:
 **Note:** A single page can have mixed actions - some components created, others refined. Example: "Create Card.tsx (new), Refine Header.tsx (exists), Refine Sidebar.tsx (exists)"
 
 **Build Order:**
-- Can components be built in parallel? Or do some depend on others?
-- Recommend parallel if independent, sequential if dependencies exist
+- **If container extracted:** Build container first, then children in parallel
+  - Container must exist before children (they're nested inside it)
+  - Example: Build `PerformancePageCard.tsx` → then `ProfileHeader`, `VitalsSidebar`, `PerformanceContent` in parallel
+- **If no container:** Can all components be built in parallel? Or do some depend on others?
+- Recommend parallel if independent, sequential only if dependencies exist
 
 **Verification Checklist:**
 For the overall page:
@@ -277,13 +297,19 @@ Each agent:
   - Preserve existing event handlers and refs
   - Keep all logic intact
 
-### Sequential Implementation (If Dependencies)
+### Sequential Implementation (If Dependencies or Container Extraction)
 
-If components depend on each other, spawn **one Sonnet agent** that builds in order:
+**If container was extracted:**
+1. First: Build container component (e.g., `PerformancePageCard.tsx`) - one Sonnet agent
+2. Then: Build children in parallel (they depend on container existing)
 
+**If other dependencies exist:**
+Spawn **one Sonnet agent** that builds in order:
 1. Build/refine page layout structure first
 2. Build/refine components one by one
 3. Integrate components into layout
+
+**Note:** Container + parallel children is a hybrid approach - sequential container, then parallel children.
 
 ### All Implementations Must:
 - Follow existing codebase patterns (check `/src/components/` for examples)
@@ -385,14 +411,15 @@ Exit immediately when pixel-perfect. Don't waste iterations.
 1. **File-based workflow** - Saves specs/screenshots to `.forge/` directory, keeps context lean
 2. **Focused agent context** - Each agent reads only its component's specs, not all data
 3. **Auto-detection** - Automatically determines which components to create vs. refine
-4. **Mixed operations** - Can create new and refine existing in single run
-5. **Screenshot + Figma combo** - Visual context with precise specs
-6. **Single Figma MCP call** - Get all components at once
-7. **Parallel building** - Build multiple components simultaneously (optional)
-8. **Haiku for verification** - 90% cheaper than Sonnet for comparisons
-9. **Explicit checklists** - No ambiguity in verification, exact values required
-10. **Early exit** - Stop when pixel-perfect
-11. **Surgical refinements** - Preserves logic, only updates styling (Edit tool)
+4. **Container extraction** - Extracts card/wrapper styling from parent groups automatically
+5. **Mixed operations** - Can create new and refine existing in single run
+6. **Screenshot + Figma combo** - Visual context with precise specs
+7. **Single Figma MCP call** - Get all components at once
+8. **Parallel building** - Build multiple components simultaneously (optional)
+9. **Haiku for verification** - 90% cheaper than Sonnet for comparisons
+10. **Explicit checklists** - No ambiguity in verification, exact values required
+11. **Early exit** - Stop when pixel-perfect
+12. **Surgical refinements** - Preserves logic, only updates styling (Edit tool)
 
 ---
 

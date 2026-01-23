@@ -1,27 +1,28 @@
 # /forge - Full Page Builder from Figma
 
-A Claude Code skill that creates new pages or refines existing components from Figma by combining screenshot context with precise component specs.
+A Claude Code skill that automatically creates new pages or refines existing components from Figma by combining screenshot context with precise component specs.
 
 ## What is /forge?
 
 `/forge` is a custom skill for [Claude Code](https://claude.com/claude-code) that builds full pages using a hybrid approach:
 
-1. **Mode Selection** - Choose to create new or refine existing components
-2. **Screenshot** - Provides layout and composition context
-3. **Figma MCP** - Provides precise component specifications
-4. **Analyze** - Opus creates comprehensive build plan
+1. **Screenshot** - Provides layout and composition context
+2. **Figma MCP** - Provides precise component specifications
+3. **Auto-Detect** - Automatically determines which components exist vs. need creation
+4. **Analyze** - Opus creates comprehensive build plan with per-component actions
 5. **Build/Refine** - Sonnet creates new or updates existing components (parallel or sequential)
 6. **Verify** - Haiku + Playwright compares against screenshot
 7. **Iterate** - Fixes discrepancies until pixel-perfect (max 3 iterations)
 
 ## Features
 
-- 🎭 **Dual mode** - Create new components or refine existing ones
+- 🤖 **Auto-detection** - Automatically determines which components to create vs. refine
+- 🎭 **Mixed operations** - Can create new and refine existing in a single run
 - 📸 **Hybrid approach** - Screenshot for layout + Figma MCP for precision
 - 📁 **File-based workflow** - Saves specs to `.forge/` directory, keeps context lean for precision
 - ⚡ **Parallel building** - Build multiple components simultaneously (optional)
 - 🎯 **Smart grouping** - Select 4-6 main components in Figma, not 500 individual elements
-- 🔧 **Surgical refinements** - Preserves logic, only updates styling in refine mode
+- 🔧 **Surgical refinements** - Preserves logic, only updates styling when refining
 - 💰 **Cost-optimized** - Model tiering (Opus/Sonnet/Haiku) with transparent cost estimates
 - 🔄 **Iterative refinement** - Automatically compares and fixes until pixel-perfect
 - 🚀 **Zero configuration** - Works with any React/TypeScript codebase
@@ -69,23 +70,20 @@ A Claude Code skill that creates new pages or refines existing components from F
    ```
    /forge
    ```
-   - Forge asks: "Creating new or refining existing?"
-   - You reply: `1` (new) or `2` (refine)
-
-4. **Capture components:**
    - Forge prompts: "Reply 'ready' when your selection is active"
    - You reply: `ready`
    - **Forge immediately captures component specs** (~5 seconds)
    - Forge confirms: "✓ Got specs for 4 components. You can now work on other things in Figma."
 
-5. **Upload screenshot:**
+4. **Upload screenshot:**
    - Forge prompts: "Please attach a full-page screenshot"
    - Upload your screenshot (from step 1)
    - **Your Figma selection doesn't need to stay active anymore!**
 
-6. **Watch it build:**
+5. **Watch it build:**
+   - Auto-detects which components exist vs. need creation
    - Analyzes screenshot for layout/composition
-   - Creates build plan using cached Figma specs
+   - Creates build plan with per-component actions
    - Creates/refines components (in parallel if independent)
    - Verifies against screenshot
    - Reports cost breakdown
